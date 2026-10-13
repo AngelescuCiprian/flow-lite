@@ -13,7 +13,7 @@ Settings (environment variables, see start.bat):
                "medium" or "small" are faster on CPU-only machines)
   FLOW_DEVICE  "auto" (default: NVIDIA GPU if it works, otherwise CPU), "cuda" or "cpu"
   FLOW_KEY     key to hold while speaking (default "ctrl_r" = Right Ctrl; e.g. "alt_r", "f9")
-  FLOW_INSERT  "paste" (default) or "type" for apps that block Ctrl+V
+  FLOW_INSERT  "paste" (default), "type" for apps that block Ctrl+V, or "print" to only show the text
   FLOW_WORDS   comma list of names/jargon to bias recognition, e.g. "Ciprian,GitHub,Ghidra"
 
 Run `python flow_lite.py --check` to test the model, microphone and clipboard without dictating.
@@ -239,11 +239,21 @@ def check() -> None:
         print(f"[{language}] {time.perf_counter() - started:.1f}s  {tidy(text, language)}")
 
 
+_KEY_LABELS = {
+    "ctrl_r": "tasta Ctrl din DREAPTA (singură, nu Ctrl+R)",
+    "alt_r": "tasta Alt din DREAPTA",
+    "shift_r": "tasta Shift din DREAPTA",
+}
+
+
 def main() -> None:
+    sys.stdout.reconfigure(line_buffering=True)
     hold_key = parse_hold_key(HOLD_KEY_NAME)
-    print(f"Loading {MODEL_NAME} for languages {LANGS} (first run downloads the model) ...")
+    key_label = _KEY_LABELS.get(HOLD_KEY_NAME, f"tasta {HOLD_KEY_NAME.upper()}")
+    print(f"Încarc modelul {MODEL_NAME} pentru limbile {LANGS} ...")
     transcriber = Transcriber()
-    print(f"Running on {transcriber.device}.")
+    print(f"Model încărcat pe {'GPU' if transcriber.device == 'cuda' else 'CPU'}. "
+          f"Microfon: {sd.query_devices(kind='input')['name']}")
     recorder = Recorder()
     kb = keyboard.Controller()
     jobs: queue.Queue[np.ndarray] = queue.Queue()
@@ -253,16 +263,24 @@ def main() -> None:
         while True:
             audio = jobs.get()
             if len(audio) < SAMPLE_RATE * 0.3:
-                continue  # accidental tap
+                print("   Prea scurt: ține tasta apăsată cât timp vorbești.")
+                continue
+            if np.abs(audio).max() < 0.003:
+                print("   Microfonul nu a captat sunet. Verifică microfonul implicit din Windows "
+                      "(Setări > Sistem > Sunet > Intrare).")
+                continue
             try:
                 started = time.perf_counter()
                 text, language = transcriber.transcribe(audio)
                 text = tidy(text, language)
-                if text:
+                if not text:
+                    print("   Nu am recunoscut nicio vorbire.")
+                    continue
+                if INSERT_MODE != "print":
                     insert_text(text + " ", kb)
-                print(f"[{language}] {time.perf_counter() - started:.1f}s  {text}")
+                print(f"   [{language}] {time.perf_counter() - started:.1f}s  {text}")
             except Exception as exc:
-                print(f"Dictation failed: {exc}")
+                print(f"   Eroare la dictare: {exc}")
 
     threading.Thread(target=worker, daemon=True).start()
 
@@ -272,13 +290,19 @@ def main() -> None:
         if key == hold_key and not recording.is_set():
             recording.set()
             recorder.start()
+            print(">> Înregistrez... vorbește, apoi eliberează tasta.")
 
     def on_release(key) -> None:
         if key == hold_key and recording.is_set():
             recording.clear()
             jobs.put(recorder.stop())
+            print("   Procesez...")
 
-    print(f"Hold {HOLD_KEY_NAME} and speak; release to insert the text. Close this window to quit.")
+    print()
+    print(f"GATA! Click într-un câmp de text, ține apăsată {key_label},")
+    print("vorbește, apoi eliberează tasta: textul apare unde e cursorul.")
+    print("Închide această fereastră ca să oprești programul.")
+    print()
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
 

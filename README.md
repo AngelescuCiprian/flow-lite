@@ -22,8 +22,9 @@ Inspired by Wispr Flow's Windows client (not affiliated).
 
 ## Use
 
-1. Double-click **`start.bat`** and wait for `Hold ctrl_r and speak`.
-2. Click into any text field, **hold Right Ctrl**, speak, **release**.
+1. Double-click **`start.bat`** and wait for `GATA!` in the window.
+2. Click into any text field, **hold the Right Ctrl key on its own** (not Ctrl+R), speak,
+   **release**. The window shows `>> Înregistrez...` while recording and then the text.
 3. The text is pasted at the cursor. Your previous clipboard text is restored, and
    dictations are kept out of the Win+V clipboard history.
 
@@ -38,7 +39,7 @@ Edit the top of `start.bat`:
 | `FLOW_LANGS` | `ro,en` | Allowed languages, first preferred. `ro` = Romanian only (most reliable). Each dictation is in one language. |
 | `FLOW_MODEL` | `large-v3-turbo` | `large-v3` = most accurate (slower); `medium` / `small` = faster on CPU-only PCs. |
 | `FLOW_KEY` | `ctrl_r` | Key to hold: `ctrl_r`, `alt_r`, `f9`, `scroll_lock`, ... |
-| `FLOW_INSERT` | `paste` | `type` types the characters one by one, for apps that block pasting. |
+| `FLOW_INSERT` | `paste` | `type` types the characters one by one, for apps that block pasting; `print` only shows the text in the window (test mode). |
 | `FLOW_WORDS` | empty | Names and jargon to recognise better, e.g. `Ciprian,GitHub,Kubernetes`. |
 | `FLOW_DEVICE` | `auto` | `cpu` forces the CPU; `cuda` forces the GPU. |
 
@@ -61,5 +62,9 @@ Romanian sentence. Newer GPUs are much faster; CPU-only is slower (try `FLOW_MOD
 ## Pe scurt (română)
 
 1. Instalează Python 3.13, descarcă folderul și rulează `install.bat` (o singură dată).
-2. Pornește `start.bat`, ține apăsat **Ctrl din dreapta**, vorbește, apoi eliberează tasta:
-   textul apare unde e cursorul. Totul rulează gratuit, pe calculatorul tău.
+2. Pornește `start.bat` și așteaptă mesajul `GATA!`.
+3. Dă click într-un câmp de text, ține apăsată **tasta Ctrl din dreapta** (singură, nu Ctrl+R),
+   vorbește, apoi eliberează tasta: textul apare unde e cursorul.
+   Totul rulează gratuit, pe calculatorul tău.
+4. Dacă nu apare nimic, uită-te în fereastra Flow-lite: scrie dacă microfonul nu a captat
+   sunet sau dacă ai ținut tasta prea puțin. Microfonul folosit este cel implicit din Windows.
