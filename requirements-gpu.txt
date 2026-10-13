@@ -1,0 +1,3 @@
+# Only for NVIDIA GPUs (install.bat adds this automatically when nvidia-smi is present).
+# CTranslate2 4.x loads CUDA 12 cuBLAS; it already ships cuDNN 9.
+nvidia-cublas-cu12>=12.4,<13
